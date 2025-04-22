@@ -6,9 +6,6 @@
 #include <vector>
 #include <Windows.h>
 
-// Для отправки в Telegram (нужна библиотека libcurl)
-//#include <curl/curl.h>
-
 class NetworkMonitor {
 private:
     std::vector<std::string> devices;  // Список устройств для мониторинга
