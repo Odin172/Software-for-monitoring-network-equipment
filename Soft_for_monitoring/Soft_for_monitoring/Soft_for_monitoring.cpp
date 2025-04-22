@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <string>
 #include <cstdlib>
@@ -13,6 +13,8 @@ class NetworkMonitor {
 private:
     std::vector<std::string> devices;  // Список устройств для мониторинга
     std::string logFile = "network_log.txt";  // Файл для логов
+    std::string telegramBotToken = "7783108874:AAG3hrF0aW_NDpAflPa2AhUsiP9aBO3eS4s";  // Токен бота Telegram
+    std::string telegramChatID = "1702112741";  // ID чата для уведомлений
 
 public:
     // Добавление устройства в список мониторинга
@@ -22,19 +24,31 @@ public:
 
     // Проверка доступности устройства (ping)
     bool pingDevice(const std::string& ip) {
-        std::string command = "ping -n 1 " + ip + " > NUL";  
+        std::string command = "ping -c 1 " + ip + " > /dev/null 2>&1";  // Linux/Mac
+        // Для Windows: ping -n 1 192.168.1.1 > NUL
         int status = system(command.c_str());
         return (status == 0);  // 0 = успешный ping
     }
 
-   // Запись лога в файл
+    // Отправка сообщения в Telegram
+    void sendTelegramAlert(const std::string& message) {
+        CURL* curl = curl_easy_init();
+        if (curl) {
+            std::string url = "https://api.telegram.org/bot" + telegramBotToken +
+                "/sendMessage?chat_id=" + telegramChatID +
+                "&text=" + message;
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+            curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+        }
+    }
+
+    // Запись лога в файл
     void logEvent(const std::string& event) {
         std::ofstream log(logFile, std::ios::app);  // Открываем файл в режиме дописывания
         if (log.is_open()) {
             time_t now = time(0);
-            char timeStr[26];
-            ctime_s(timeStr, sizeof(timeStr), &now);
-            log << "[" << timeStr << "] " << event << std::endl;
+            log << "[" << ctime(&now) << "] " << event << std::endl;
             log.close();
         }
     }
@@ -47,6 +61,7 @@ public:
                 if (!isOnline) {
                     std::string alert = "Устройство " + device + " недоступно!";
                     logEvent(alert);
+                    sendTelegramAlert(alert);
                 }
                 else {
                     logEvent("Устройство " + device + " работает нормально.");
