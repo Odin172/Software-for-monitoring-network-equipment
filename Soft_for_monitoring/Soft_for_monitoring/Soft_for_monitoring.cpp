@@ -30,7 +30,7 @@ public:
         if (log.is_open()) {
             time_t now = time(0);
             char timeStr[26];
-            ctime_s(timeStr, sizeof(timeStr), &now);
+            ctime_r(timeStr, sizeof(timeStr), &now); //ctime_r для работы в Linux
             log << "[" << timeStr << "] " << event << std::endl;
             log.close();
         }
