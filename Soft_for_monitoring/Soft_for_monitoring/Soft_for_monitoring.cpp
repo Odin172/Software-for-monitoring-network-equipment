@@ -7,7 +7,7 @@
 #include <Windows.h>
 
 // Для отправки в Telegram (нужна библиотека libcurl)
-//#include <curl/curl.h>
+#include <curl/curl.h>
 
 class NetworkMonitor {
 private:
